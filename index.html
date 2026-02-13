@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Thai Consonant Drill</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .card {
+        background: white;
+        width: 360px;
+        padding: 24px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .hearts {
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+    .timer {
+        font-size: 18px;
+        margin-bottom: 10px;
+        font-weight: bold;
+        color: #e63946;
+    }
+    .consonant {
+        font-size: 90px;
+        margin: 20px 0;
+    }
+    button {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 8px;
+        border: none;
+        background: #eee;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    button:hover {
+        background: #ddd;
+    }
+    .correct {
+        color: green;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+    .incorrect {
+        color: red;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+    .start-btn {
+        background: #4c7cf3;
+        color: white;
+        font-size: 18px;
+    }
+</style>
+</head>
+<body>
+
+<div class="card" id="app">
+    <h1>We Love Hor Nai Mango</h1>
+    <p>Thai Consonants</p>
+    <button class="start-btn" onclick="startGame('classic')">Classic Mode</button>
+    <button class="start-btn" onclick="startGame('time')">Time Mode</button>
+    <button class="start-btn" onclick="startGame('survival')">Survival Mode</button>
+</div>
+
+<script>
+const consonants = [
+  { c: "ก", name: "กอ ไก่", roman: "gor gai" },
+  { c: "ข", name: "ขอ ไข่", roman: "khor khai" },
+  { c: "ค", name: "คอ ควาย", roman: "khor khwai" },
+  { c: "ง", name: "งอ งู", roman: "ngor ngu" },
+  { c: "จ", name: "จอ จาน", roman: "jor jaan" },
+  { c: "ช", name: "ชอ ช้าง", roman: "chor chang" },
+  { c: "ด", name: "ดอ เด็ก", roman: "dor dek" },
+  { c: "ต", name: "ตอ เต่า", roman: "tor tao" },
+  { c: "บ", name: "บอ ใบไม้", roman: "bor bai-mai" },
+  { c: "ป", name: "ปอ ปลา", roman: "por pla" },
+  { c: "ม", name: "มอ ม้า", roman: "mor ma" },
+  { c: "ย", name: "ยอ ยักษ์", roman: "yor yak" },
+  { c: "ร", name: "รอ เรือ", roman: "ror ruea" },
+  { c: "ล", name: "ลอ ลิง", roman: "lor ling" },
+  { c: "ว", name: "วอ แหวน", roman: "wor waen" },
+  { c: "ส", name: "สอ เสือ", roman: "sor suea" },
+  { c: "ห", name: "หอ หีบ", roman: "hor hip" },
+  { c: "อ", name: "ออ อ่าง", roman: "or ang" },
+  { c: "ฮ", name: "ฮอ นกฮูก", roman: "hor nok-huk" }
+];
+
+let hearts = 3;
+let current;
+let mode = "classic";
+let timer;
+let timeLeft = 10;
+let timePerQuestion = 10;
+let minTime = 2;
+
+function startGame(selectedMode) {
+    mode = selectedMode;
+    hearts = 3;
+    timePerQuestion = 10;
+    nextQuestion();
+}
+
+function nextQuestion() {
+    clearInterval(timer);
+
+    if (mode === "classic" && hearts <= 0) {
+        gameOver();
+        return;
+    }
+
+    current = consonants[Math.floor(Math.random() * consonants.length)];
+    let options = shuffle([
+        current,
+        ...shuffle(consonants.filter(x => x !== current)).slice(0,2)
+    ]);
+
+    let timerHTML = "";
+    let heartsHTML = "";
+
+    if (mode === "classic") {
+        heartsHTML = `<div class="hearts">${"❤️".repeat(hearts)}</div>`;
+    }
+
+    if (mode === "time" || mode === "survival") {
+        timeLeft = timePerQuestion;
+        timerHTML = `<div class="timer">⏳ ${timeLeft.toFixed(1)}s</div>`;
+        startTimer();
+    }
+
+    document.getElementById("app").innerHTML = `
+        ${heartsHTML}
+        ${timerHTML}
+        <h2>${mode.toUpperCase()} MODE</h2>
+        <div class="consonant">${current.c}</div>
+        ${options.map(o =>
+            `<button onclick="checkAnswer('${o.c}')">${o.roman}</button>`
+        ).join("")}
+        <div id="result"></div>
+    `;
+}
+
+function startTimer() {
+    timer = setInterval(() => {
+        timeLeft -= 0.1;
+        document.querySelector(".timer").innerText = `⏳ ${timeLeft.toFixed(1)}s`;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            gameOver();
+        }
+    }, 100);
+}
+
+function checkAnswer(choice) {
+    clearInterval(timer);
+    const result = document.getElementById("result");
+
+    if (choice === current.c) {
+        result.innerHTML = `
+            <div class="correct">✓ Correct</div>
+            <div>${current.name}</div>
+        `;
+
+        if (mode === "survival") {
+            timePerQuestion = Math.max(minTime, timePerQuestion - 0.5);
+        }
+
+        setTimeout(nextQuestion, 1000);
+
+    } else {
+        if (mode === "classic") {
+            hearts--;
+            result.innerHTML = `<div class="incorrect">✗ Incorrect</div>`;
+            setTimeout(nextQuestion, 1000);
+        } else {
+            gameOver();
+        }
+    }
+}
+
+function gameOver() {
+    clearInterval(timer);
+
+    document.getElementById("app").innerHTML = `
+        <h2>${mode.toUpperCase()} MODE</h2>
+        <div class="incorrect">✗ Game Over</div>
+        <button class="start-btn" onclick="startGame('${mode}')">Try Again</button>
+        <button class="start-btn" onclick="location.reload()">Main Menu</button>
+    `;
+}
+
+function shuffle(arr) {
+    return [...arr].sort(() => Math.random() - 0.5);
+}
+</script>
+
+</body>
+</html>
