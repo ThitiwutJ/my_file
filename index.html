@@ -97,6 +97,7 @@ const consonants = [
   { c: "ฮ", name: "ฮอ นกฮูก", roman: "hor nok-huk" }
 ];
 
+
 let hearts = 3;
 let current;
 let mode = "classic";
@@ -104,11 +105,13 @@ let timer;
 let timeLeft = 10;
 let timePerQuestion = 10;
 let minTime = 2;
+let correctConsonants = new Set(); // Track consonants answered correctly
 
 function startGame(selectedMode) {
     mode = selectedMode;
     hearts = 3;
     timePerQuestion = 10;
+    correctConsonants = new Set();
     nextQuestion();
 }
 
@@ -120,7 +123,22 @@ function nextQuestion() {
         return;
     }
 
-    current = consonants[Math.floor(Math.random() * consonants.length)];
+    // Filter out consonants already answered correctly
+    const availableConsonants = consonants.filter(c => !correctConsonants.has(c.c));
+    const remainingCount = availableConsonants.length;
+    const totalCount = consonants.length;
+    if (remainingCount === 0) {
+        // All consonants answered correctly
+        document.getElementById("app").innerHTML = `
+            <h2>${mode.toUpperCase()} MODE</h2>
+            <div class=\"correct\">🎉 You answered all consonants correctly!</div>
+            <button class=\"start-btn\" onclick=\"startGame('${mode}')\">Play Again</button>
+            <button class=\"start-btn\" onclick=\"location.reload()\">Main Menu</button>
+        `;
+        return;
+    }
+
+    current = availableConsonants[Math.floor(Math.random() * availableConsonants.length)];
     let options = shuffle([
         current,
         ...shuffle(consonants.filter(x => x !== current)).slice(0,2)
@@ -128,14 +146,15 @@ function nextQuestion() {
 
     let timerHTML = "";
     let heartsHTML = "";
+    let counterHTML = `<div style=\"margin-bottom:8px;font-size:16px;color:#555;\">Remaining: <b>${remainingCount}</b> / ${totalCount}</div>`;
 
     if (mode === "classic") {
-        heartsHTML = `<div class="hearts">${"❤️".repeat(hearts)}</div>`;
+        heartsHTML = `<div class=\"hearts\">${"❤️".repeat(hearts)}</div>`;
     }
 
     if (mode === "time" || mode === "survival") {
         timeLeft = timePerQuestion;
-        timerHTML = `<div class="timer">⏳ ${timeLeft.toFixed(1)}s</div>`;
+        timerHTML = `<div class=\"timer\">⏳ ${timeLeft.toFixed(1)}s</div>`;
         startTimer();
     }
 
@@ -143,11 +162,12 @@ function nextQuestion() {
         ${heartsHTML}
         ${timerHTML}
         <h2>${mode.toUpperCase()} MODE</h2>
-        <div class="consonant">${current.c}</div>
+        ${counterHTML}
+        <div class=\"consonant\">${current.c}</div>
         ${options.map(o =>
-            `<button onclick="checkAnswer('${o.c}')">${o.roman}</button>`
+            `<button onclick=\"checkAnswer('${o.c}')\">${o.roman}</button>`
         ).join("")}
-        <div id="result"></div>
+        <div id=\"result\"></div>
     `;
 }
 
@@ -172,6 +192,7 @@ function checkAnswer(choice) {
             <div class="correct">✓ Correct</div>
             <div>${current.name}</div>
         `;
+        correctConsonants.add(current.c); // Mark as answered correctly
 
         if (mode === "survival") {
             timePerQuestion = Math.max(minTime, timePerQuestion - 0.5);
