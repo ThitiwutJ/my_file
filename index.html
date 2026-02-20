@@ -113,6 +113,8 @@
         margin-bottom: 16px;
     }
     .theme-toggle {
+        position: relative;
+        overflow: hidden;
         width: 40px; height: 40px;
         border-radius: 12px;
         background: var(--btn-bg);
@@ -130,6 +132,8 @@
         transform: rotate(20deg);
     }
     .stats-btn {
+        position: relative;
+        overflow: hidden;
         width: 40px; height: 40px;
         border-radius: 12px;
         background: var(--btn-bg);
@@ -170,6 +174,8 @@
         margin-bottom: 20px;
     }
     .mode-card {
+        position: relative;
+        overflow: hidden;
         display: flex;
         align-items: center;
         gap: 16px;
@@ -224,6 +230,8 @@
         flex-wrap: wrap;
     }
     .chip {
+        position: relative;
+        overflow: hidden;
         padding: 6px 14px;
         border-radius: 20px;
         font-size: 13px;
@@ -491,6 +499,8 @@
 
     /* Action buttons */
     .action-btn {
+        position: relative;
+        overflow: hidden;
         width: 100%;
         padding: 14px;
         border-radius: 14px;
@@ -661,6 +671,8 @@
         justify-content: center;
     }
     .diff-btn {
+        position: relative;
+        overflow: hidden;
         padding: 6px 16px;
         border-radius: 20px;
         font-size: 13px;
@@ -687,6 +699,28 @@
         letter-spacing: 1px;
         display: inline-block;
         margin-bottom: 8px;
+    }
+
+    /* Ripple effect */
+    .ripple-target {
+        position: relative;
+        overflow: hidden;
+    }
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.35);
+        transform: scale(0);
+        animation: rippleExpand 0.6s ease-out forwards;
+        pointer-events: none;
+        z-index: 1;
+    }
+    [data-theme="light"] .ripple {
+        background: rgba(108,99,255,0.2);
+    }
+    @keyframes rippleExpand {
+        0% { transform: scale(0); opacity: 1; }
+        100% { transform: scale(4); opacity: 0; }
     }
 </style>
 </head>
@@ -1301,6 +1335,22 @@ document.addEventListener('keydown', (e) => {
     if (idx >= 0 && idx < state.options.length) {
         checkAnswer(state.options[idx].c);
     }
+});
+
+// ==================== RIPPLE EFFECT ====================
+const RIPPLE_SELECTORS = '.opt-btn, .action-btn, .mode-card, .chip, .diff-btn, .theme-toggle, .stats-btn';
+document.addEventListener('click', (e) => {
+    const target = e.target.closest(RIPPLE_SELECTORS);
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 2;
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+    target.appendChild(ripple);
+    ripple.addEventListener('animationend', () => ripple.remove());
 });
 
 // ==================== INIT ====================
