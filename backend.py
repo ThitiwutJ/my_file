@@ -8,14 +8,9 @@ import os
 app = Flask(__name__)
 CORS(app)  # Allow CORS for frontend
 
-# Database connection
 def get_db_connection():
-    return psycopg2.connect(
-        host="localhost",
-        database="streak_db",
-        user="postgres",
-        password="password"
-    )
+    db_url = os.environ.get('DATABASE_URL')
+    return psycopg2.connect(db_url)
 
 # Initialize database
 def init_db():
@@ -99,4 +94,6 @@ def start_quiz():
     return jsonify({'streak': new_streak})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Grab Render's assigned port, or use 5000 if running on your laptop
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
