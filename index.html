@@ -794,6 +794,7 @@ let state = {
     answered: false,
     theme: localStorage.getItem('thai-drill-theme') || 'dark',
     nickname: localStorage.getItem('thai-drill-nickname') || '',
+    streak: 0,
     pool: []
 };
 
@@ -813,20 +814,31 @@ function saveStats(entry) {
     localStorage.setItem('thai-drill-stats', JSON.stringify(stats));
 }
 
-// ==================== NICKNAME / LOGIN ====================
-function saveNickname(nick) {
-    state.nickname = nick;
-    localStorage.setItem('thai-drill-nickname', nick);
+// ==================== API ====================
+async function fetchStreak(nickname) {
+    try {
+        const response = await fetch(`http://localhost:5000/streak?nickname=${encodeURIComponent(nickname)}`);
+        const data = await response.json();
+        return data.streak || 0;
+    } catch (e) {
+        console.error('Failed to fetch streak:', e);
+        return 0;
+    }
 }
 
-function handleNicknameSubmit() {
-    const input = document.getElementById('nickname-input');
-    if (!input) return;
-    const nick = input.value.trim();
-    if (!nick) return; // ignore empty
-    saveNickname(nick);
-    state.screen = 'menu';
-    render();
+async function updateStreak(nickname) {
+    try {
+        const response = await fetch('http://localhost:5000/start_quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname })
+        });
+        const data = await response.json();
+        return data.streak || 0;
+    } catch (e) {
+        console.error('Failed to update streak:', e);
+        return state.streak;
+    }
 }
 
 // ==================== THEME ====================
@@ -906,6 +918,17 @@ function showScorePopup(points) {
 
 // ==================== GAME LOGIC ====================
 function startGame(selectedMode) {
+    if (state.nickname) {
+        updateStreak(state.nickname).then(newStreak => {
+            state.streak = newStreak;
+            proceedStartGame(selectedMode);
+        });
+    } else {
+        proceedStartGame(selectedMode);
+    }
+}
+
+function proceedStartGame(selectedMode) {
     state.mode = selectedMode;
     state.hearts = 3;
     state.maxHearts = 3;
@@ -1072,7 +1095,7 @@ function renderMenu(app) {
         <div class="screen-fade">
             <div class="top-bar">
                 <button class="stats-btn" onclick="showStats()">&#128202;</button>
-                ${state.nickname ? `<div class="greeting">Welcome back, ${state.nickname}</div>` : ''}
+                ${state.nickname ? `<div class="greeting">${state.nickname} 🔥 ${state.streak}</div>` : ''}
                 <button class="theme-toggle" onclick="toggleTheme()">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
             </div>
 
@@ -1164,7 +1187,7 @@ function renderGame(app) {
                     <button class="stats-btn" onclick="backToMenu()" style="width:32px;height:32px;font-size:14px">&#10005;</button>
                     <div class="mode-badge" style="background:${cfg.color}22;color:${cfg.color}">${cfg.label}</div>
                 </div>
-                ${state.nickname ? `<div class="greeting">Welcome back, ${state.nickname}</div>` : ''}
+                ${state.nickname ? `<div class="greeting">${state.nickname} 🔥 ${state.streak}</div>` : ''}
                 <button class="theme-toggle" onclick="toggleTheme()" style="width:32px;height:32px;font-size:14px">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
             </div>
 
@@ -1223,7 +1246,7 @@ function renderEnd(app, won) {
     app.innerHTML = `
         <div class="screen-fade end-screen">
             <div class="top-bar">
-                ${state.nickname ? `<div class="greeting">Welcome back, ${state.nickname}</div>` : '<div></div>'}
+                ${state.nickname ? `<div class="greeting">${state.nickname} 🔥 ${state.streak}</div>` : '<div></div>'}
                 <button class="theme-toggle" onclick="toggleTheme()" style="width:32px;height:32px;font-size:14px">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
             </div>
 
@@ -1267,7 +1290,7 @@ function renderStats(app) {
         <div class="screen-fade dashboard">
             <div class="top-bar">
                 <button class="stats-btn" onclick="backToMenu()">&#8592;</button>
-                ${state.nickname ? `<div class="greeting">Welcome back, ${state.nickname}</div>` : ''}
+                ${state.nickname ? `<div class="greeting">${state.nickname} 🔥 ${state.streak}</div>` : ''}
                 <h2 style="margin:0">Statistics</h2>
                 <button class="theme-toggle" onclick="toggleTheme()" style="width:32px;height:32px;font-size:14px">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
             </div>
@@ -1353,7 +1376,15 @@ applyTheme();
 if (!state.nickname) {
     state.screen = 'login';
 } else {
-    state.screen = 'menu';
+    // Fetch streak
+    fetchStreak(state.nickname).then(streak => {
+        state.streak = streak;
+        state.screen = 'menu';
+        render();
+    }).catch(() => {
+        state.screen = 'menu';
+        render();
+    });
 }
 render();
 </script>
