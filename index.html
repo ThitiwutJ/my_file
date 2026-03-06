@@ -112,6 +112,15 @@
         align-items: center;
         margin-bottom: 16px;
     }
+    .greeting {
+        flex: 1;
+        text-align: center;
+        font-size: 14px;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     .theme-toggle {
         width: 40px; height: 40px;
         border-radius: 12px;
@@ -784,6 +793,7 @@ let state = {
     gameStartTime: 0,
     answered: false,
     theme: localStorage.getItem('thai-drill-theme') || 'dark',
+    nickname: localStorage.getItem('thai-drill-nickname') || '',
     pool: []
 };
 
@@ -801,6 +811,22 @@ function saveStats(entry) {
     stats.totalWrong += entry.wrong;
     if (entry.score > stats.bestScore) stats.bestScore = entry.score;
     localStorage.setItem('thai-drill-stats', JSON.stringify(stats));
+}
+
+// ==================== NICKNAME / LOGIN ====================
+function saveNickname(nick) {
+    state.nickname = nick;
+    localStorage.setItem('thai-drill-nickname', nick);
+}
+
+function handleNicknameSubmit() {
+    const input = document.getElementById('nickname-input');
+    if (!input) return;
+    const nick = input.value.trim();
+    if (!nick) return; // ignore empty
+    saveNickname(nick);
+    state.screen = 'menu';
+    render();
 }
 
 // ==================== THEME ====================
@@ -1030,6 +1056,7 @@ function endGame(won) {
 function render() {
     const app = document.getElementById('app');
     switch (state.screen) {
+        case 'login': renderLogin(app); break;
         case 'menu': renderMenu(app); break;
         case 'game': renderGame(app); break;
         case 'victory': renderEnd(app, true); break;
@@ -1045,6 +1072,7 @@ function renderMenu(app) {
         <div class="screen-fade">
             <div class="top-bar">
                 <button class="stats-btn" onclick="showStats()">&#128202;</button>
+                ${state.nickname ? `<div class="greeting">Welcome back, ${state.nickname}</div>` : ''}
                 <button class="theme-toggle" onclick="toggleTheme()">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
             </div>
 
@@ -1084,6 +1112,18 @@ function renderMenu(app) {
         </div>`;
 }
 
+function renderLogin(app) {
+    app.innerHTML = `
+        <div class="screen-fade">
+            <div class="title">Welcome</div>
+            <div class="subtitle">Please enter a nickname</div>
+            <input id="nickname-input" type="text" placeholder="Your nickname" autofocus
+                   style="width:100%;padding:12px 16px;border-radius:12px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text-primary);margin:16px 0;font-size:16px;"
+                   onkeydown="if(event.key==='Enter') handleNicknameSubmit()">
+            <button class="action-btn btn-primary" onclick="handleNicknameSubmit()">Continue</button>
+        </div>`;
+}
+
 function renderGame(app) {
     const pool = state.pool;
     const total = pool.length;
@@ -1120,9 +1160,12 @@ function renderGame(app) {
     app.innerHTML = `
         <div class="screen-fade">
             <div class="top-bar">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <button class="stats-btn" onclick="backToMenu()" style="width:32px;height:32px;font-size:14px">&#10005;</button>
+                    <div class="mode-badge" style="background:${cfg.color}22;color:${cfg.color}">${cfg.label}</div>
+                </div>
+                ${state.nickname ? `<div class="greeting">Welcome back, ${state.nickname}</div>` : ''}
                 <button class="theme-toggle" onclick="toggleTheme()" style="width:32px;height:32px;font-size:14px">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
-                <div class="mode-badge" style="background:${cfg.color}22;color:${cfg.color}">${cfg.label}</div>
-                <button class="stats-btn" onclick="backToMenu()" style="width:32px;height:32px;font-size:14px">&#10005;</button>
             </div>
 
             <div class="hud">
@@ -1180,7 +1223,7 @@ function renderEnd(app, won) {
     app.innerHTML = `
         <div class="screen-fade end-screen">
             <div class="top-bar">
-                <div></div>
+                ${state.nickname ? `<div class="greeting">Welcome back, ${state.nickname}</div>` : '<div></div>'}
                 <button class="theme-toggle" onclick="toggleTheme()" style="width:32px;height:32px;font-size:14px">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
             </div>
 
@@ -1202,7 +1245,7 @@ function renderEnd(app, won) {
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" style="color:var(--accent-orange)">${state.bestStreak}x</div>
-                    <div class="stat-label">Best Streak</div>
+                    <div class="stat-labe">Best Streak</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" style="color:var(--accent-cyan)">${mins}:${secs.toString().padStart(2,'0')}</div>
@@ -1224,6 +1267,7 @@ function renderStats(app) {
         <div class="screen-fade dashboard">
             <div class="top-bar">
                 <button class="stats-btn" onclick="backToMenu()">&#8592;</button>
+                ${state.nickname ? `<div class="greeting">Welcome back, ${state.nickname}</div>` : ''}
                 <h2 style="margin:0">Statistics</h2>
                 <button class="theme-toggle" onclick="toggleTheme()" style="width:32px;height:32px;font-size:14px">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
             </div>
@@ -1305,7 +1349,12 @@ document.addEventListener('keydown', (e) => {
 
 // ==================== INIT ====================
 applyTheme();
-state.screen = 'menu';
+// if we have no stored nickname, start at login screen
+if (!state.nickname) {
+    state.screen = 'login';
+} else {
+    state.screen = 'menu';
+}
 render();
 </script>
 
