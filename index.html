@@ -1246,7 +1246,7 @@ function renderEnd(app, won) {
     app.innerHTML = `
         <div class="screen-fade end-screen">
             <div class="top-bar">
-                ${state.nickname ? `<div class="greeting">Welcome back, ${state.nickname}</div>` : '<div></div>'}
+                ${state.nickname ? `<div class="greeting">${state.nickname} 🔥 ${state.streak}</div>` : '<div></div>'}
                 <button class="theme-toggle" onclick="toggleTheme()" style="width:32px;height:32px;font-size:14px">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
             </div>
 
@@ -1290,7 +1290,7 @@ function renderStats(app) {
         <div class="screen-fade dashboard">
             <div class="top-bar">
                 <button class="stats-btn" onclick="backToMenu()">&#8592;</button>
-                ${state.nickname ? `<div class="greeting">Welcome back, ${state.nickname}</div>` : ''}
+                ${state.nickname ? `<div class="greeting">${state.nickname} 🔥 ${state.streak}</div>` : ''}
                 <h2 style="margin:0">Statistics</h2>
                 <button class="theme-toggle" onclick="toggleTheme()" style="width:32px;height:32px;font-size:14px">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
             </div>
