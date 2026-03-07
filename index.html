@@ -770,6 +770,34 @@ const MODE_CONFIG = {
     survival:{ icon:'&#9889;', color:'#ff9100', label:'Survival', desc:'Timer speeds up with each correct answer.' }
 };
 
+const API_URL = "https://my-file-2yaj-service.onrender.com";
+
+async function fetchStreak(nickname) {
+    try {
+        const response = await fetch(`${API_URL}/streak?nickname=${encodeURIComponent(nickname)}`);
+        const data = await response.json();
+        state.streak = data.streak || 0;
+        render();
+    } catch (err) {
+        console.error("Error fetching streak:", err);
+    }
+}
+
+async function startQuiz(nickname) {
+    try {
+        const response = await fetch(`${API_URL}/start_quiz`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname })
+        });
+        const data = await response.json();
+        state.streak = data.streak;
+        render();
+    } catch (err) {
+        console.error("Error starting quiz:", err);
+    }
+}
+
 // ==================== STATE ====================
 let state = {
     screen: 'menu',
@@ -1087,7 +1115,18 @@ function render() {
         case 'stats': renderStats(app); break;
     }
 }
-
+function renderLogin(app) {
+    app.innerHTML = `
+        <div class="screen-fade" style="text-align: center; padding: 40px 20px;">
+            <div class="title" style="margin-bottom: 10px;">Thai Drill</div>
+            <div class="subtitle" style="margin-bottom: 30px;">Enter a nickname to track your daily streak</div>
+            
+            <input type="text" id="nickname-input" placeholder="Your Nickname..." 
+                style="width: 100%; max-width: 300px; padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); background: var(--glass-bg); color: white; margin-bottom: 20px; outline: none; font-family: 'Prompt', sans-serif;">
+            <br>
+            <button class="action-btn btn-primary" onclick="setNickname()" style="width: 100%; max-width: 300px;">Start Game</button>
+        </div>`;
+}
 function renderMenu(app) {
     const classCount = (cls) => cls === 'all' ? consonants.length : consonants.filter(c => c.cls === cls).length;
 
@@ -1332,6 +1371,26 @@ function renderStats(app) {
             ${stats.games.length > 0 ? `<button class="action-btn btn-secondary" onclick="clearStats()" style="font-size:13px;margin-top:8px">Clear History</button>` : ''}
             <button class="action-btn btn-primary" onclick="backToMenu()">Back to Menu</button>
         </div>`;
+}
+// ==================== NEW LOGIN LOGIC ====================
+async function setNickname() {
+    const input = document.getElementById('nickname-input');
+    if (!input) return;
+    
+    const name = input.value.trim();
+    if (!name) {
+        alert("Please enter a nickname!");
+        return;
+    }
+
+    state.nickname = name;
+    localStorage.setItem('thai-drill-nickname', name);
+    
+    // This tells Render to wake up the database
+    await startQuiz(name); 
+    
+    state.screen = 'menu';
+    render();
 }
 
 // ==================== NAVIGATION ====================
