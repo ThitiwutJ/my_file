@@ -817,7 +817,7 @@ function saveStats(entry) {
 // ==================== API ====================
 async function fetchStreak(nickname) {
     try {
-        const response = await fetch(`http://localhost:5000/streak?nickname=${encodeURIComponent(nickname)}`);
+        const response = await fetch(`https://my-file-2yaj-service.onrender.com/streak?nickname=${encodeURIComponent(nickname)}`);
         const data = await response.json();
         return data.streak || 0;
     } catch (e) {
@@ -828,7 +828,7 @@ async function fetchStreak(nickname) {
 
 async function updateStreak(nickname) {
     try {
-        const response = await fetch('http://localhost:5000/start_quiz', {
+        const response = await fetch('https://my-file-2yaj-service.onrender.com/start_quiz', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nickname })
