@@ -1126,6 +1126,13 @@ function renderMenu(app) {
                 ${state.nickname ? `<div class="greeting">${state.nickname} 🔥 ${state.streak}</div>` : ''}
                 <button class="theme-toggle" onclick="toggleTheme()">${state.theme==='dark'?'&#9788;':'&#9790;'}</button>
             </div>
+            ${state.nickname ? `
+            <div style="text-align:center;margin:10px 0;">
+                <button class="action-btn btn-secondary" onclick="changePlayer()">
+                    Change Player
+                </button>
+            </div>
+            ` : ''}
 
             <div class="title">Thai Consonant Drill</div>
             <div class="subtitle">Master all 44 Thai consonants</div>
@@ -1353,7 +1360,7 @@ function renderStats(app) {
 async function setNickname() {
     const input = document.getElementById('nickname-input');
     if (!input) return;
-    
+
     const name = input.value.trim();
     if (!name) {
         alert("Please enter a nickname!");
@@ -1362,15 +1369,24 @@ async function setNickname() {
 
     state.nickname = name;
     localStorage.setItem('thai-drill-nickname', name);
-    
-    // This tells Render to wake up the database
-    startQuiz(name); 
-    
+
+    // Wait for streak to be fetched before going to menu
+    await startQuiz(name);
+
     state.screen = 'menu';
     render();
 }
 
 // ==================== NAVIGATION ====================
+function changePlayer() {
+    localStorage.removeItem('thai-drill-nickname');
+    state.nickname = null;
+    state.screen = 'login';
+    render();
+    // ensure the newly-rendered input receives focus
+    setTimeout(() => document.getElementById('nickname-input')?.focus(), 0);
+}
+
 function backToMenu() {
     clearInterval(state.timer);
     state.screen = 'menu';
@@ -1410,11 +1426,13 @@ document.addEventListener('keydown', (e) => {
 window.onload = function() {
     applyTheme();
 
-    // always ask for nickname
-    state.nickname = null;
-    localStorage.removeItem('thai-drill-nickname');
+    if (!state.nickname) {
+        state.screen = 'login';
+    } else {
+        fetchStreak(state.nickname);
+        state.screen = 'menu';
+    }
 
-    state.screen = 'login';
     render();
 };
 </script>
