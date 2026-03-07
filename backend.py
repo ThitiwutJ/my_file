@@ -3,9 +3,10 @@ from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
+from flask import Flask, request, jsonify, send_from_directory
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app)  # Allow CORS for frontend
 
 def get_db_connection():
@@ -34,12 +35,16 @@ def init_db():
 init_db()
 
 @app.route('/')
-def home():
-    return "Thai Drill API running"
+def index():
+    return app.send_static_file('index.html')
 
 @app.route('/favicon.ico')
 def favicon():
     return '', 204
+
+@app.route('/<path:path>')
+def static_proxy(path):
+    return app.send_static_file(path)
     
 @app.route('/streak', methods=['GET'])
 def get_streak():
