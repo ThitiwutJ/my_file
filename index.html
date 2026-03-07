@@ -1371,19 +1371,18 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ==================== INIT ====================
-applyTheme();
-// if we have no stored nickname, start at login screen
-if (!state.nickname) {
-    state.screen = 'login';
-} else {
-    // Fetch streak
-    fetchStreak(state.nickname).then(streak => {
-        state.streak = streak;
+// ==================== INIT ====================
+window.onload = function() {
+    applyTheme();
+    // Force the screen to login if no name is saved
+    if (!state.nickname) {
+        state.screen = 'login';
+    } else {
+        fetchStreak(state.nickname);
         state.screen = 'menu';
-        render();
-    }).catch(() => {
-        state.screen = 'menu';
-        render();
+    }
+    render(); // This actually draws the login box on the screen
+};
     });
 }
 render();
