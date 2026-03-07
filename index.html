@@ -950,7 +950,7 @@ function proceedStartGame(selectedMode) {
     state.hearts = 3;
     state.maxHearts = 3;
     state.score = 0;
-    state.streak = 0;
+    //state.streak = 0;
     state.bestStreak = 0;
     state.correctSet = new Set();
     state.totalAnswered = 0;
@@ -1109,8 +1109,8 @@ function renderLogin(app) {
         <div class="screen-fade" style="text-align: center; padding: 40px 20px;">
             <div class="title" style="margin-bottom: 10px;">Thai Drill</div>
             <div class="subtitle" style="margin-bottom: 30px;">Enter a nickname to track your daily streak</div>
-            
-            <input type="text" id="nickname-input" placeholder="Your Nickname..." 
+            <input type="text" id="nickname-input" autofocus placeholder="Your Nickname..." 
+                onkeydown="if(event.key==='Enter') setNickname()"
                 style="width: 100%; max-width: 300px; padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); background: var(--glass-bg); color: white; margin-bottom: 20px; outline: none; font-family: 'Prompt', sans-serif;">
             <br>
             <button class="action-btn btn-primary" onclick="setNickname()" style="width: 100%; max-width: 300px;">Start Game</button>
@@ -1284,7 +1284,7 @@ function renderEnd(app, won) {
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" style="color:var(--accent-orange)">${state.bestStreak}x</div>
-                    <div class="stat-labe">Best Streak</div>
+                    <div class="stat-label">Best Streak</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" style="color:var(--accent-cyan)">${mins}:${secs.toString().padStart(2,'0')}</div>
