@@ -33,6 +33,10 @@ def init_db():
 
 init_db()
 
+@app.route('/')
+def home():
+    return "Thai Drill API running"
+    
 @app.route('/streak', methods=['GET'])
 def get_streak():
     nickname = request.args.get('nickname')
