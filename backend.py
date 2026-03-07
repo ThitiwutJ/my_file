@@ -36,6 +36,10 @@ init_db()
 @app.route('/')
 def home():
     return "Thai Drill API running"
+
+@app.route("/favicon.ico")
+def favicon():
+    return "", 204
     
 @app.route('/streak', methods=['GET'])
 def get_streak():
