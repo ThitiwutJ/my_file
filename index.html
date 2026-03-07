@@ -822,7 +822,6 @@ let state = {
     answered: false,
     theme: localStorage.getItem('thai-drill-theme') || 'dark',
     nickname: localStorage.getItem('thai-drill-nickname') || '',
-    streak: 0,
     pool: []
 };
 
@@ -843,16 +842,6 @@ function saveStats(entry) {
 }
 
 // ==================== API ====================
-async function fetchStreak(nickname) {
-    try {
-        const response = await fetch(`https://my-file-2yaj-service.onrender.com/streak?nickname=${encodeURIComponent(nickname)}`);
-        const data = await response.json();
-        return data.streak || 0;
-    } catch (e) {
-        console.error('Failed to fetch streak:', e);
-        return 0;
-    }
-}
 
 async function updateStreak(nickname) {
     try {
@@ -1174,18 +1163,6 @@ function renderMenu(app) {
         </div>`;
 }
 
-function renderLogin(app) {
-    app.innerHTML = `
-        <div class="screen-fade">
-            <div class="title">Welcome</div>
-            <div class="subtitle">Please enter a nickname</div>
-            <input id="nickname-input" type="text" placeholder="Your nickname" autofocus
-                   style="width:100%;padding:12px 16px;border-radius:12px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text-primary);margin:16px 0;font-size:16px;"
-                   onkeydown="if(event.key==='Enter') handleNicknameSubmit()">
-            <button class="action-btn btn-primary" onclick="handleNicknameSubmit()">Continue</button>
-        </div>`;
-}
-
 function renderGame(app) {
     const pool = state.pool;
     const total = pool.length;
@@ -1441,9 +1418,6 @@ window.onload = function() {
     }
     render(); // This actually draws the login box on the screen
 };
-    });
-}
-render();
 </script>
 
 </body>
