@@ -10,6 +10,9 @@ CORS(app)  # Allow CORS for frontend
 
 def get_db_connection():
     db_url = os.environ.get('DATABASE_URL')
+    # This line ensures the URL starts with 'postgresql://' instead of 'postgres://'
+    if db_url and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
     return psycopg2.connect(db_url)
 
 # Initialize database
