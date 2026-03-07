@@ -1364,7 +1364,7 @@ async function setNickname() {
     localStorage.setItem('thai-drill-nickname', name);
     
     // This tells Render to wake up the database
-    await startQuiz(name); 
+    startQuiz(name); 
     
     state.screen = 'menu';
     render();
