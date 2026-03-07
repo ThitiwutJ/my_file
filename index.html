@@ -1409,14 +1409,13 @@ document.addEventListener('keydown', (e) => {
 // ==================== INIT ====================
 window.onload = function() {
     applyTheme();
-    // Force the screen to login if no name is saved
-    if (!state.nickname) {
-        state.screen = 'login';
-    } else {
-        fetchStreak(state.nickname);
-        state.screen = 'menu';
-    }
-    render(); // This actually draws the login box on the screen
+
+    // always ask for nickname
+    state.nickname = null;
+    localStorage.removeItem('thai-drill-nickname');
+
+    state.screen = 'login';
+    render();
 };
 </script>
 
